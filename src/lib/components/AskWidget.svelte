@@ -1,6 +1,7 @@
 <script lang="ts">
   // States per DESIGN.md §4: ready · thinking · answered · declined · asleep · limited · unavailable.
-  import { PUBLIC_ASK_API } from '$env/static/public';
+  import { onMount } from 'svelte';
+  import { PUBLIC_ASK_API, PUBLIC_TURNSTILE_SITEKEY } from '$env/static/public';
 
   type Citation = { slug: string; title: string; url: string };
   type Turn = { q: string; a: string; outcome: 'answered' | 'declined'; citations: Citation[] };
@@ -12,6 +13,39 @@
   let turns: Turn[] = $state([]);
   let sessionId: string = $state('');
 
+  // Cloudflare Turnstile: the site key is public; the API verifies the token server-side.
+  // Without a site key (local dev) no token is sent and the API skips the check.
+  let tsEl: HTMLDivElement | undefined = $state();
+  let tsToken: string = $state('');
+  let tsWidget: string | undefined;
+  onMount(() => {
+    if (!PUBLIC_TURNSTILE_SITEKEY || !tsEl) return;
+    const render = () => {
+      // @ts-expect-error turnstile is injected by the script below
+      tsWidget = window.turnstile?.render(tsEl, {
+        sitekey: PUBLIC_TURNSTILE_SITEKEY,
+        theme: 'dark',
+        callback: (t: string) => (tsToken = t),
+        'expired-callback': () => (tsToken = ''),
+        'error-callback': () => (tsToken = '')
+      });
+    };
+    // @ts-expect-error see above
+    if (window.turnstile) render();
+    else {
+      const s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      s.async = true;
+      s.onload = render;
+      document.head.appendChild(s);
+    }
+  });
+  function resetTurnstile() {
+    tsToken = '';
+    // @ts-expect-error see above
+    if (tsWidget !== undefined) window.turnstile?.reset(tsWidget);
+  }
+
   async function ask(e: SubmitEvent) {
     e.preventDefault();
     const q = question.trim();
@@ -21,8 +55,15 @@
       const res = await fetch(`${api}/ask`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ question: q, session_id: sessionId || undefined, history: turns.slice(-2) })
+        body: JSON.stringify({
+          question: q,
+          session_id: sessionId || undefined,
+          history: turns.slice(-2),
+          turnstile_token: tsToken || undefined
+        })
       });
+      if (PUBLIC_TURNSTILE_SITEKEY) resetTurnstile(); // tokens are single-use
+      if (res.status === 403) { status = 'error'; return; }
       if (res.status === 429) { status = 'limited'; return; }
       if (res.status === 503) { status = 'asleep'; return; }
       if (!res.ok) { status = 'error'; return; }
@@ -75,6 +116,7 @@
   {/if}
 
   <form onsubmit={ask}>
+    {#if PUBLIC_TURNSTILE_SITEKEY}<div class="turnstile" bind:this={tsEl}></div>{/if}
     <input
       type="text"
       bind:value={question}
@@ -83,7 +125,7 @@
       disabled={status !== 'ready' && status !== 'error'}
       aria-label="Your question"
     />
-    <button type="submit" disabled={status !== 'ready' || !question.trim()}>Ask</button>
+    <button type="submit" disabled={status !== 'ready' || !question.trim() || (!!PUBLIC_TURNSTILE_SITEKEY && !tsToken)}>Ask</button>
     {#if turns.length}<button type="button" class="link" onclick={clear}>clear</button>{/if}
   </form>
   <p class="muted" style="font-size:0.75rem;margin-top:0.5rem">Two turns of memory. Questions are logged without identifying you. <a href="/writing/evaluating-this-bot">How it's evaluated →</a></p>
@@ -100,6 +142,7 @@
   @keyframes blink { 50% { opacity: 0; } }
   .notice { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.75rem; }
   form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .turnstile { flex-basis: 100%; min-height: 65px; }
   input { flex: 1; min-width: 220px; font-family: inherit; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.55rem 0.75rem; font-size: 0.9rem; }
   input:focus { border-color: var(--green); outline: none; }
   button[type='submit'] { font-family: inherit; background: var(--green); color: var(--bg); border: none; border-radius: var(--radius-sm); padding: 0.55rem 1rem; font-weight: 600; cursor: pointer; }

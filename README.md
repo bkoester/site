@@ -12,7 +12,8 @@ header comment in `src/tokens.css`.
 ## Config
 
 Copy `.env.example` to `.env`. `PUBLIC_ASK_API` is the bot's base URL (empty = widget shows
-"not wired up yet"). `PUBLIC_INDEXABLE=true` removes the `noindex` meta at launch; also change
+"not wired up yet"). `PUBLIC_TURNSTILE_SITEKEY` is the Turnstile site key (public; the widget renders only when set).
+`PUBLIC_INDEXABLE=true` removes the `noindex` meta at launch; also change
 `static/robots.txt` to `Allow: /`.
 
 ## Develop
@@ -25,6 +26,6 @@ npm run build   # output in build/
 
 ## Cloudflare Pages settings
 
-Build command `npm run build`, output directory `build`, Node 22. Set the two `PUBLIC_*`
+Build command `npm run build`, output directory `build`, Node 22. Set the three `PUBLIC_*`
 variables in the project's environment. Attach `benkoester.com` + `www` as custom domains at
 launch (PLAN.md §2b in ideas-claude-chat).
