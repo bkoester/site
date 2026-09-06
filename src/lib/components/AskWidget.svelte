@@ -3,6 +3,8 @@
   import { onMount } from 'svelte';
   import { PUBLIC_ASK_API, PUBLIC_TURNSTILE_SITEKEY } from '$env/static/public';
 
+  let { compact = false }: { compact?: boolean } = $props();
+
   type Citation = { slug: string; title: string; url: string };
   type Turn = { q: string; a: string; outcome: 'answered' | 'declined'; citations: Citation[] };
   type State = 'ready' | 'thinking' | 'asleep' | 'limited' | 'unavailable' | 'error';
@@ -81,10 +83,12 @@
   function clear() { turns = []; sessionId = ''; status = api ? 'ready' : 'unavailable'; }
 </script>
 
-<div class="ask">
-  <p class="muted" style="font-size:0.85rem">
-    Answers about Ben's writing and projects, with sources. Doesn't do opinions or personal questions.
-  </p>
+<div class="ask panel" class:compact>
+  <div class="ask-head">
+    <span class="ask-title">ask</span>
+    <span class="label">third person · cites sources · declines the personal</span>
+  </div>
+  {#if !compact}<p class="muted" style="font-size:0.85rem">Answers about Ben's writing and projects, with sources. Doesn't do opinions or personal questions.</p>{/if}
 
   <div class="transcript" aria-live="polite">
     {#each turns as t}
@@ -134,9 +138,12 @@
 </div>
 
 <style>
-  .ask { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; background: var(--panel); }
-  .transcript { margin: 1rem 0; }
-  .turn { padding: 0.75rem 0; border-top: 1px solid var(--border); }
+  .ask { display: flex; flex-direction: column; gap: 12px; }
+  .ask-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ask-title { font-weight: 700; color: var(--text-strong); }
+  .ask-head .label { text-align: right; }
+  .transcript { margin: 0; }
+  .turn { padding: 0.75rem 0 0; border-top: 1px solid var(--border); font-size: 15px; }
   .turn p { margin-bottom: 0.4rem; }
   .cites { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .chip { font-size: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.15rem 0.5rem; color: var(--cyan); }
@@ -145,9 +152,9 @@
   .notice { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.75rem; }
   form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
   .turnstile { flex-basis: 100%; min-height: 65px; }
-  input { flex: 1; min-width: 220px; font-family: inherit; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.55rem 0.75rem; font-size: 0.9rem; }
+  input { flex: 1; min-width: 180px; min-height: 44px; font-family: inherit; background: var(--bg); color: var(--text); border: 1px solid #2a352a; border-radius: var(--radius-sm); padding: 0 0.75rem; font-size: 15px; }
   input:focus { border-color: var(--green); outline: none; }
-  button[type='submit'] { font-family: inherit; background: var(--green); color: var(--bg); border: none; border-radius: var(--radius-sm); padding: 0.55rem 1rem; font-weight: 600; cursor: pointer; }
+  button[type='submit'] { font-family: inherit; min-height: 44px; background: var(--green); color: var(--bg); border: none; border-radius: var(--radius-sm); padding: 0 1rem; font-weight: 700; cursor: pointer; }
   button[type='submit']:disabled { opacity: 0.5; cursor: not-allowed; }
   .link { background: none; border: none; color: var(--cyan); font-family: inherit; font-size: 0.8rem; cursor: pointer; padding: 0; }
   @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }

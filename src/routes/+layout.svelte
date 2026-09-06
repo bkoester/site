@@ -3,15 +3,16 @@
   import { page } from '$app/state';
   import { site } from '$lib/site';
   import { PUBLIC_INDEXABLE } from '$env/static/public';
+  import StatusStrip from '$lib/components/StatusStrip.svelte';
 
   let { children } = $props();
 
   const nav = [
-    { href: '/', label: 'Home' },
-    { href: '/writing', label: 'Writing' },
-    { href: '/projects', label: 'Projects' },
-    { href: '/ask', label: 'Ask' },
-    { href: '/about', label: 'About' }
+    { href: '/', label: 'home' },
+    { href: '/writing', label: 'writing' },
+    { href: '/projects', label: 'projects' },
+    { href: '/ask', label: 'ask' },
+    { href: '/about', label: 'about' }
   ];
   const isActive = (href: string) =>
     href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
@@ -24,12 +25,11 @@
   <meta property="og:type" content="website" />
 </svelte:head>
 
+<a class="skip" href="#main">Skip to content</a>
 <div class="shell">
+  <StatusStrip />
   <header class="site-header">
-    <div>
-      <a class="brand" href="/">{site.name}</a>
-      <span class="brand-sub">{site.tagline}</span>
-    </div>
+    <a class="brand" href="/" aria-label="Ben Koester, home">bk</a>
     <nav class="site-nav" aria-label="Site">
       {#each nav as item}
         <a href={item.href} class:active={isActive(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
@@ -37,7 +37,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main">
     {@render children()}
   </main>
 
@@ -45,6 +45,7 @@
     <a href="mailto:{site.email}">{site.email}</a>
     <a href={site.github} rel="me">github.com/bkoester</a>
     <a href={site.linkedin} rel="me">LinkedIn</a>
+    <a href="/rss.xml">RSS</a>
     <span>© {new Date().getFullYear()} {site.name}</span>
   </footer>
 </div>
