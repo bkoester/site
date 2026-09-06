@@ -65,7 +65,8 @@
       if (PUBLIC_TURNSTILE_SITEKEY) resetTurnstile(); // tokens are single-use
       if (res.status === 403) { status = 'error'; return; }
       if (res.status === 429) { status = 'limited'; return; }
-      if (res.status === 503) { status = 'asleep'; return; }
+      // 503 = bot offline/capped; 502/504/530 = Cloudflare can't reach the host (asleep overnight)
+      if ([502, 503, 504, 530].includes(res.status)) { status = 'asleep'; return; }
       if (!res.ok) { status = 'error'; return; }
       const data = await res.json();
       sessionId = data.session_id ?? sessionId;
@@ -73,7 +74,8 @@
       question = '';
       status = 'ready';
     } catch {
-      status = 'asleep';
+      // Network-level failure (CORS, DNS, offline): not the same as the host sleeping.
+      status = 'error';
     }
   }
   function clear() { turns = []; sessionId = ''; status = api ? 'ready' : 'unavailable'; }
@@ -112,7 +114,7 @@
   {:else if status === 'limited'}
     <p class="notice">That's enough for now; try again in a few minutes.</p>
   {:else if status === 'error'}
-    <p class="notice">Something went wrong on the bot's side. <button class="link" onclick={() => (status = 'ready')}>Try again</button></p>
+    <p class="notice">Couldn't reach the bot. <button class="link" onclick={() => (status = 'ready')}>Try again</button></p>
   {/if}
 
   <form onsubmit={ask}>
