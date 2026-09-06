@@ -1,0 +1,13 @@
+{
+  // Used only if the site is deployed through the Cloudflare Workers Git flow
+  // (build: `npm run build`, deploy: `npx wrangler deploy`). Serves the static
+  // SvelteKit output as Worker assets; no Worker code. Ignored by Pages.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "benkoester",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./build",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}
