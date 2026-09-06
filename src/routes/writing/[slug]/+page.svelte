@@ -2,8 +2,7 @@
   import { bySlug } from '$lib/writing';
   import { site } from '$lib/site';
   let { data } = $props();
-  const post = bySlug(data.slug)!;
-  const Body = post.component;
+  const Body = $derived(bySlug(data.slug)!.component);
 </script>
 
 <svelte:head>

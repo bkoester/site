@@ -7,35 +7,35 @@
   type State = 'ready' | 'thinking' | 'asleep' | 'limited' | 'unavailable' | 'error';
 
   const api = PUBLIC_ASK_API?.replace(/\/$/, '') ?? '';
-  let state = $state<State>(api ? 'ready' : 'unavailable');
+  let status: State = $state(api ? 'ready' : 'unavailable');
   let question = $state('');
-  let turns = $state<Turn[]>([]);
-  let sessionId = $state<string>('');
+  let turns: Turn[] = $state([]);
+  let sessionId: string = $state('');
 
   async function ask(e: SubmitEvent) {
     e.preventDefault();
     const q = question.trim();
-    if (!q || state === 'thinking' || !api) return;
-    state = 'thinking';
+    if (!q || status === 'thinking' || !api) return;
+    status = 'thinking';
     try {
       const res = await fetch(`${api}/ask`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ question: q, session_id: sessionId || undefined, history: turns.slice(-2) })
       });
-      if (res.status === 429) { state = 'limited'; return; }
-      if (res.status === 503) { state = 'asleep'; return; }
-      if (!res.ok) { state = 'error'; return; }
+      if (res.status === 429) { status = 'limited'; return; }
+      if (res.status === 503) { status = 'asleep'; return; }
+      if (!res.ok) { status = 'error'; return; }
       const data = await res.json();
       sessionId = data.session_id ?? sessionId;
       turns = [...turns, { q, a: data.answer, outcome: data.outcome, citations: data.citations ?? [] }];
       question = '';
-      state = 'ready';
+      status = 'ready';
     } catch {
-      state = 'asleep';
+      status = 'asleep';
     }
   }
-  function clear() { turns = []; sessionId = ''; state = api ? 'ready' : 'unavailable'; }
+  function clear() { turns = []; sessionId = ''; status = api ? 'ready' : 'unavailable'; }
 </script>
 
 <div class="ask">
@@ -61,17 +61,17 @@
         {/if}
       </div>
     {/each}
-    {#if state === 'thinking'}<p class="cursor" aria-label="Thinking">▌</p>{/if}
+    {#if status === 'thinking'}<p class="cursor" aria-label="Thinking">▌</p>{/if}
   </div>
 
-  {#if state === 'unavailable'}
+  {#if status === 'unavailable'}
     <p class="notice">The bot isn't wired up yet. The rest of the site works.</p>
-  {:else if state === 'asleep'}
+  {:else if status === 'asleep'}
     <p class="notice">Ben's host sleeps 23:30–07:00 ET. Back at 7. <a href="/projects">Why it sleeps →</a></p>
-  {:else if state === 'limited'}
+  {:else if status === 'limited'}
     <p class="notice">That's enough for now; try again in a few minutes.</p>
-  {:else if state === 'error'}
-    <p class="notice">Something went wrong on the bot's side. <button class="link" onclick={() => (state = 'ready')}>Try again</button></p>
+  {:else if status === 'error'}
+    <p class="notice">Something went wrong on the bot's side. <button class="link" onclick={() => (status = 'ready')}>Try again</button></p>
   {/if}
 
   <form onsubmit={ask}>
@@ -80,10 +80,10 @@
       bind:value={question}
       placeholder="What does Ben think about LLM-as-judge?"
       maxlength="300"
-      disabled={state !== 'ready' && state !== 'error'}
+      disabled={status !== 'ready' && status !== 'error'}
       aria-label="Your question"
     />
-    <button type="submit" disabled={state !== 'ready' || !question.trim()}>Ask</button>
+    <button type="submit" disabled={status !== 'ready' || !question.trim()}>Ask</button>
     {#if turns.length}<button type="button" class="link" onclick={clear}>clear</button>{/if}
   </form>
   <p class="muted" style="font-size:0.75rem;margin-top:0.5rem">Two turns of memory. Questions are logged without identifying you. <a href="/writing/evaluating-this-bot">How it's evaluated →</a></p>
