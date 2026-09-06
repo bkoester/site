@@ -1,0 +1,3 @@
+# Pre-launch: disallow everything. Flip to "Allow: /" with PUBLIC_INDEXABLE=true at launch.
+User-agent: *
+Disallow: /
