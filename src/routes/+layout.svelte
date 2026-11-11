@@ -11,6 +11,7 @@
     { href: '/', label: 'home' },
     { href: '/writing', label: 'writing' },
     { href: '/projects', label: 'projects' },
+    { href: '/publications', label: 'papers' },
     { href: '/ask', label: 'ask' },
     { href: '/about', label: 'about' }
   ];
