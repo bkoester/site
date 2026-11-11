@@ -6,8 +6,23 @@ header comment in `src/tokens.css`.
 
 ## Pages
 
-`/` home · `/writing` (Markdown in `src/content/writing/`, via mdsvex) · `/projects` · `/ask`
+`/` home · `/writing` (Markdown in `src/content/writing/`, via mdsvex) · `/projects` and `/projects/<slug>` case studies · `/ask`
 (widget calling `PUBLIC_ASK_API`) · `/about` · `/rss.xml`.
+
+## Case studies
+
+`/projects/<slug>` pages are generated from the private `portfolio` repo, which stays the source. A case study
+is published only when its front matter there has `status: done` and `publish: true`.
+
+```bash
+node scripts/sync-case-studies.mjs ../portfolio   # needs mmdc (npm i -g @mermaid-js/mermaid-cli) for diagrams
+npm run build
+```
+
+The script rewrites `src/content/projects/*.md` and `static/case-studies/*.svg`; commit both. Don't edit them by
+hand. It drops the private "To resolve" list and any pitch section, points paper links at their DOIs, and keeps
+GitHub links only for repos the portfolio inventory lists as public. Styles are the `.case` rules in
+`src/app.css`.
 
 ## Config
 
