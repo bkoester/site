@@ -6,7 +6,7 @@ header comment in `src/tokens.css`.
 
 ## Pages
 
-`/` home · `/writing` (Markdown in `src/content/writing/`, via mdsvex) · `/projects` and `/projects/<slug>` case studies · `/ask`
+`/` home · `/writing` (Markdown in `src/content/writing/`, via mdsvex) · `/projects` and `/projects/<slug>` case studies · `/publications` · `/ask`
 (widget calling `PUBLIC_ASK_API`) · `/about` · `/rss.xml`.
 
 ## Case studies
@@ -23,6 +23,16 @@ The script rewrites `src/content/projects/*.md` and `static/case-studies/*.svg`;
 hand. It drops the private "To resolve" list and any pitch section, points paper links at their DOIs, and keeps
 GitHub links only for repos the portfolio inventory lists as public. Styles are the `.case` rules in
 `src/app.css`.
+
+## Publications
+
+`/publications` is built from `src/data/publications.json`, generated from the private `publications` repo:
+
+```bash
+node scripts/sync-publications.mjs ../publications
+```
+
+Only titles, years, authors, venues and links are copied. Styles are the `.pub` rules in `src/app.css`.
 
 ## Config
 
