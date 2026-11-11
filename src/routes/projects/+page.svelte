@@ -1,6 +1,7 @@
 <script lang="ts">
   import { site } from '$lib/site';
   import { projects } from '$lib/projects';
+  import { caseStudies } from '$lib/casestudies';
   import Icon from '$lib/components/Icon.svelte';
 </script>
 
@@ -10,9 +11,24 @@
 </svelte:head>
 
 <h1 class="page-title">Projects</h1>
-<p class="page-lede">Public repositories. Each README explains the engineering decisions rather than the personal use.</p>
+<p class="page-lede">Case studies of what was built and what came of it, and the public repositories behind them. Each README explains the engineering decisions rather than the personal use.</p>
 
-<div class="cards two" style="margin-top: 0">
+{#if caseStudies.length}
+  <div class="section-head" style="margin-top: 0"><h2>Case studies</h2></div>
+  <div class="cards two">
+    {#each caseStudies as c}
+      <a class="card" href="/projects/{c.slug}">
+        <span class="label">{c.kind}</span>
+        <span class="title">{c.title}</span>
+        <span class="summary">{c.summary}</span>
+        <span class="meta">Read the case study →</span>
+      </a>
+    {/each}
+  </div>
+  <div class="section-head"><h2>Repositories</h2></div>
+{/if}
+
+<div class="cards two" style="margin-top: {caseStudies.length ? 20 : 0}px">
   {#each projects as p}
     <article class="card" id={p.slug}>
       <span class="label">Project</span>
